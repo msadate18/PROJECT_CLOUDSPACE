@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Deploys an EC2 instance in a referenced VPC with an Elastic IP.
+
+Mappings:
+  RegionMap:
+    us-east-1:
+      AMI: ami-0abcdef1234567890
+    us-west-2:
+      AMI: ami-07b0c09aab6e66ee9
+    eu-west-1:
+      AMI: ami-0abcdef1234567892
+
+Parameters:
+  InstanceType:
+    Type: String
+    Default: t2.micro
+    Description: EC2 instance type.
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+  
+  VolumeSize:
+    Type: Number
+    Default: 10
+    Description: Root volume size in GB.
+  RegionName:
+    Type: String
+    Default: us-west-2
+    AllowedValues:
+      - us-east-1
+      - us-west-2
+      - eu-west-1
+    Description: AWS region.
+
+Resources:
+  EC2Instance:
+  Type: AWS::EC2::Instance
+  Properties:
+    InstanceType: !Ref InstanceType
+    KeyName: !Ref KeyPairName
+    ImageId: !FindInMap
+      - RegionMap
+      - !Ref RegionName
+      - AMI
+    SubnetId: !ImportValue networkstack-SubnetID
+    SecurityGroupIds:
+      - !ImportValue networkstack-SecurityGroupID
+    BlockDeviceMappings:
+      - DeviceName: /dev/xvda
+        Ebs:
+          VolumeSize: !Ref VolumeSize       
+  ElasticIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      InstanceId: !Ref EC2Instance
+
+Outputs:
+  PrivateIP:
+    Description: Private IPv4 address of the EC2 instance.
+    Value: !GetAtt EC2Instance.PrivateIp
+  PublicDNSName:
+    Description: DNS name of the EC2 instance.
+    Value: !GetAtt EC2Instance.PublicDnsName
