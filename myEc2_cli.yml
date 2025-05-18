@@ -1,0 +1,13 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation template to create an EC2 instance in an existing VPC and subnet
+
+Resources:
+  MyEC2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      InstanceType: "t2.micro"
+      ImageId: "ami-020fbc00dbecba358"
+      SubnetId: "subnet-09e3da54cd638fdfe"
+      Tags:
+        - Key: "Name"
+          Value: "Sadate"
